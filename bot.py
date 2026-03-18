@@ -293,6 +293,10 @@ async def cmd_id(update: Update, context) -> None:
         lines.append(f"  Your user ID: <code>{user.id}</code>")
     lines.append(f"  This chat ID: <code>{chat.id}</code>")
     lines.append(f"  Chat type: {esc(chat.type)}")
+    if msg.message_thread_id:
+        lines.append(f"  Topic/thread ID: <code>{msg.message_thread_id}</code>")
+    if msg.is_topic_message:
+        lines.append(f"  Is topic message: Yes")
 
     if msg.reply_to_message:
         replied = msg.reply_to_message
