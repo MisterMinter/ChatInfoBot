@@ -275,7 +275,10 @@ async def cmd_start(update: Update, context) -> None:
         "• Forward any message here to see its origin info\n"
         "• Send any media to see file IDs and metadata\n"
         "• Add me to a group to inspect group info\n"
-        "• Reply to a message with /json to dump that message",
+        "• Reply to a message with /json to dump that message\n\n"
+        "<b>In groups:</b>\n"
+        "• I only respond when @mentioned or replied to\n"
+        "• Commands always work",
         parse_mode=ParseMode.HTML,
     )
 
@@ -355,10 +358,36 @@ async def cmd_json(update: Update, context) -> None:
     )
 
 
+def _is_directed_at_bot(msg: Message, bot_username: str) -> bool:
+    """True when the message is in a private chat, mentions the bot, or replies to the bot."""
+    if msg.chat.type == ChatType.PRIVATE:
+        return True
+
+    if msg.entities:
+        for entity in msg.entities:
+            if entity.type == "mention":
+                mentioned = msg.text[entity.offset : entity.offset + entity.length]
+                if mentioned.lower() == f"@{bot_username.lower()}":
+                    return True
+            if entity.type == "text_mention" and entity.user:
+                if entity.user.username and entity.user.username.lower() == bot_username.lower():
+                    return True
+
+    if msg.reply_to_message and msg.reply_to_message.from_user:
+        if msg.reply_to_message.from_user.username and msg.reply_to_message.from_user.username.lower() == bot_username.lower():
+            return True
+
+    return False
+
+
 async def handle_any_message(update: Update, context) -> None:
-    """Respond to any non-command message with all extractable info."""
+    """Respond only when the bot is mentioned, replied to, or in a private chat."""
     msg = update.effective_message
     if not msg:
+        return
+
+    bot_username = context.bot.username or ""
+    if not _is_directed_at_bot(msg, bot_username):
         return
 
     sections: list[str] = []
