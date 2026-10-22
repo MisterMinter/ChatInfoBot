@@ -16,7 +16,7 @@ from telegram.ext import (
 
 load_dotenv()
 
-from safe_logging import configure_logging
+from safe_logging import configure_logging, run_safely
 
 configure_logging()
 
@@ -492,4 +492,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    run_safely(main)
