@@ -16,10 +16,10 @@ from telegram.ext import (
 
 load_dotenv()
 
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO,
-)
+from safe_logging import configure_logging
+
+configure_logging()
+
 logger = logging.getLogger(__name__)
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
