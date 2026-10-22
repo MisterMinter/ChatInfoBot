@@ -39,6 +39,15 @@ class RedactingFormatter(logging.Formatter):
         return redact_text(super().format(record))
 
 
+def run_safely(callback):
+    """Keep terminal exception tracebacks inside the redacting log formatter."""
+    try:
+        callback()
+    except Exception:
+        logging.getLogger(__name__).exception("Process terminated unexpectedly")
+        raise SystemExit(1) from None
+
+
 def configure_logging():
     root = logging.getLogger()
     root.setLevel(logging.INFO)

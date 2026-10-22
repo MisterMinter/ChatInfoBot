@@ -60,5 +60,27 @@ class RedactionTests(unittest.TestCase):
             logger.setLevel(old_http_level)
 
 
+    def test_terminal_startup_failure_is_redacted_and_exits_nonzero(self):
+        import subprocess
+        import sys
+        from pathlib import Path
+        code = (
+            "from safe_logging import configure_logging, run_safely\n"
+            "configure_logging()\n"
+            "def fail():\n"
+            "    token = str(123456789) + ':' + 'A' * 35\n"
+            "    raise RuntimeError('Startup rejected token: ' + token)\n"
+            "run_safely(fail)\n"
+        )
+        result = subprocess.run([sys.executable, "-c", code],
+                                cwd=Path(__file__).resolve().parents[1],
+                                capture_output=True, text=True)
+        output = result.stdout + result.stderr
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("RuntimeError", output)
+        self.assertIn("[REDACTED]", output)
+        self.assertNotIn(TOKEN, output)
+
+
 if __name__ == "__main__":
     unittest.main()
